@@ -18,7 +18,7 @@ public class MailClient
     private String asunto;
     private String message;
     private int contador = 0;
-    private MailItem correo;
+    private MailItem ultimoEmail;
     /**
      * Create a mail client run by user and attached to the given server.
      */
@@ -49,32 +49,40 @@ public class MailClient
      */
     public void printNextMailItem()
     {
+        //funcionalidad 4 y parte de lo que queda de la 6
         
         MailItem item = server.getNextMailItem(user);
         server.post(item);
+        String de = item.getFrom();
         String Mensaje = item.getMessage();
+        String para = item.getTo();
+        String asun = item.getAsunto();
+        int reg = Mensaje.indexOf("regalo");
+        int vi = Mensaje.indexOf("viagra");
         int comp = Mensaje.indexOf("?=?");
             if (comp == -1){
                 System.out.println("no es un mensaje encritado");
+                
+                if ((item.getMessage().indexOf("viagra")!=-1)||(item.getMessage().indexOf("regalo")!=-1)){
+                    item = null;
+                }
+        
                 item.print();
         }else {
            
            String crip = Mensaje.replace("a" ,"!").replace("e" , "@").replace("i", "#").replace("o", "$").replace("u","%");
+           System.out.println("From: " + de);
+           System.out.println("To: " + para);
+           System.out.println("Asunto: " + asun); 
            System.out.println("Message encrypted: " + crip);
-           item.print();
         }
         
         if(item == null) {
             System.out.println("No new mail.");
         }
-        String spam = item.getMessage();
-             if ( item.getMessage() == "regalo" || item.getMessage() == "viagra"){
-            System.out.println("ese mensaje contiene spam");
         
-        } else {
-
-             System.out.println("Message encrypted: ");
-        }
+        
+       
     }
 
     /**
@@ -85,20 +93,19 @@ public class MailClient
      */
     public void sendMailItem(String to, String asunto, String message)
     {
-        
-        this.to = to;
-        this.asunto = asunto;
-        this.message = message;
         MailItem item = new MailItem(user,to, asunto , message);
         server.post(item);
         contador ++;
     }
+    //funcionalidad 1
     
     public  int getNumerosCorreo(String who){
         int totalcorreos = server.howManyMailItems(who);
         return totalcorreos;
         
     }
+    
+    // funcionaidad 2 
     public void getDatosCorreo(int veces){
         int cont = 0;
         String espacio = " ";
@@ -112,19 +119,16 @@ public class MailClient
         }
         
     }
+    
+    //funcionalidad 3
     public void Descargar(){
-        
         MailItem item = server.getNextMailItem(user);
-        if(item  == null) {
-            System.out.println("no tienes ningun mensaje nuevo");
-        }else {
-            item.print();
-            System.out.println("gracias" + item.getFrom() + "he recibido tu correo");
-            sendMailItem(to, asunto, message);
-            
-        }
+        String gracias = "He recibido tu mensaje, gracias";
+        String asuntoOriginal = "Re: " + item.getAsunto();
+        sendMailItem(item.getFrom(), asuntoOriginal, gracias);
+        server.post(item);
         
-        
+        item.print();
         
     }
     // funcionalidad 5
@@ -146,8 +150,6 @@ public class MailClient
 public void encriptado(String to, String asunto, String message){
     MailItem item = new MailItem(user,to, asunto , message);
     server.post(item);
-    String contenido = item.getMessage();
-    String crip = contenido.replace("a", "!");
     
 }
 
